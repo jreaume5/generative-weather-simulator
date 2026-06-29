@@ -28,7 +28,7 @@ This code may be used and/or modified in any non-commerical project.
 * Text-to-text generation with `llama-3.3-70b-versatile`
 * Text-to-JSON generation using `openai/gpt-oss-20b` with Pydantic validation
 * AI-generated scene imagery through `Pollinations.AI`
-* LangChain-based orchestration
+* `LangChain`-based orchestration
 * `Groq` API integration for low latency LLM inference
 
 ### Future Ideas
