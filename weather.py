@@ -1247,11 +1247,8 @@ class ChatSystem:
         # Procedural evolution: fire every evolution_interval seconds when idle
         self.evolution_interval: float = 20.0
         self.last_evolution_time: float = time.time()
-        # Background image generation state.
+        # Background image generation state
         self._image_queue: queue.Queue = queue.Queue()
-        self._last_image_weather: dict = {}
-        # Sum of absolute per-field deltas required to trigger a new image
-        self._image_change_threshold: float = 0.25
         self._pending_image: bool = False
         self._current_struct: str | None = None
         # Slider debounce: wait for the user to stop moving sliders before
@@ -1355,7 +1352,8 @@ class ChatSystem:
                 self._copy_text_to_clipboard(self.input_text)
                 self.input_text = ""
                 self.input_all_selected = False
-
+        # TODO: Bruh for some reason this one doesnt't work (at least on
+        # MacOS)
         elif event.key == pygame.K_v and command_down:
             # Ctrl/Cmd + V pastes and replaces selected text if all is selected
             pasted = self._paste_text_from_clipboard()
@@ -1404,12 +1402,21 @@ class ChatSystem:
             except Exception as e:
                 self.stream_queue.put(
                     ("system", f"Error generating weather JSON: {e}"))
+                self.stream_queue.put(("done", ""))
+                return
 
             # Stream the narrative using both the original prompt and
             # the structured weather values so it matches the simulation state
-            weather_context = json.dumps(payload, indent=2) if payload else ""
-            for chunk in stream_agent_response(prompt, weather_context):
-                self.stream_queue.put(("delta", chunk))
+            try:
+                weather_context = json.dumps(
+                    payload, indent=2) if payload else ""
+                for chunk in stream_agent_response(prompt, weather_context):
+                    self.stream_queue.put(("delta", chunk))
+            except Exception as e:
+                self.stream_queue.put(
+                    ("system",
+                     f"Error generating narrative: {e}")
+                )
 
             self.stream_queue.put(("done", ""))
 
@@ -1448,20 +1455,6 @@ class ChatSystem:
         self.worker = threading.Thread(target=worker, daemon=True)
         self.worker.start()
 
-    def _weather_changed_significantly(self, new_values: dict) -> bool:
-        """
-        Returns True when the total absolute delta across all weather fields
-        exceeds _image_change_threshold. Used to avoid regenerating the
-        background on tiny fluctuations.
-        """
-        if not self._last_image_weather:
-            return True
-        total_change = sum(
-            abs(new_values.get(k, 0.0) - self._last_image_weather.get(k, 0.0))
-            for k in new_values
-        )
-        return total_change > self._image_change_threshold
-
     def request_background_update(self, weather_values: dict, narrative: str) -> None:
         """Spawn a daemon thread that generates a background image via Pollinations.ai.
 
@@ -1476,12 +1469,23 @@ class ChatSystem:
         def worker() -> None:
             image_prompt = generate_image_prompt(narrative, weather_context)
             if not image_prompt:
+                self.stream_queue.put(
+                    ("system", "Background image error: image prompt generation returned nothing.")
+                )
                 return
             print(
                 f"Generating background image for prompt: {image_prompt[:80]}...")
             image_bytes = generate_background_image(image_prompt)
             if image_bytes:
                 self._image_queue.put(image_bytes)
+            else:
+                self.stream_queue.put(
+                    (
+                        "system",
+                        "Background image error: image generation failed or returned no image. "
+                        "This can happen if the image API is rate-limited."
+                    )
+                )
 
         self._pending_image = True
         threading.Thread(target=worker, daemon=True).start()
@@ -1537,7 +1541,7 @@ class ChatSystem:
         if time.time() - self.last_evolution_time < self.evolution_interval:
             return
         self.last_evolution_time = time.time()
-        self.submit_evolution()
+        self.submit_weather_evolution()
 
     def submit_weather_evolution(self) -> None:
         """
@@ -1617,23 +1621,29 @@ class ChatSystem:
             # Agent done performing all actions
             elif kind == "done":
                 print(
-                    f"System generated text output:\n{self.messages[-1][1]}\n")
+                    f"System generated text output:\n{self.messages[-1][1]}\n"
+                )
                 print(
-                    "System", f"applied weather JSON:\n{self._current_struct}")
+                    "System", f"applied weather JSON:\n{self._current_struct}"
+                )
+
                 self.streaming = False
                 self.last_evolution_time = time.time()
+
                 # Trigger a background image regeneration when a weather_json
-                # was applied this cycle and the scene changed significantly
+                # was applied this cycle
                 if self._current_struct:
                     new_weather = json.loads(self._current_struct)
-                    if self._weather_changed_significantly(new_weather):
-                        self._last_image_weather = new_weather
-                        narrative = next(
-                            (text for spk, text in reversed(self.messages)
-                             if spk == "Agent"),
-                            ""
-                        )
-                        self.request_background_update(new_weather, narrative)
+
+                    narrative = next(
+                        (
+                            text for spk, text in reversed(self.messages)
+                            if spk == "Agent"
+                        ),
+                        ""
+                    )
+
+                    self.request_background_update(new_weather, narrative)
 
     def _apply_weather_json(self, data: dict) -> None:
         """Apply validated JSON model output to the simulator."""
@@ -1694,7 +1704,13 @@ class ChatSystem:
         # Draw newest lines that fit in the message area
         rendered_lines: list[tuple[str, tuple[int, int, int]]] = []
         for speaker, text in self.messages:
-            color = (170, 215, 255) if speaker == "You" else (220, 235, 210)
+            if speaker == "You":
+                color = (220, 235, 210)
+            elif speaker == "System":
+                color = (255, 150, 150)
+            else:
+                color = (120, 255, 150)
+
             body = text
             if speaker == "Agent" and self.streaming and (speaker, text) == self.messages[-1]:
                 body += "▌"
