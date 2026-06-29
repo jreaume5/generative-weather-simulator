@@ -20,14 +20,23 @@ This code may be used and/or modified in any non-commerical project.
 
 ## Features
 
+### Currently Implemented
+
 * Real-time weather simulation using `pygame`
 * Natural-language prompt input for generating weather scenes
 * Interactive weather controls and sliders
 * Text-to-text generation with `llama-3.3-70b-versatile`
 * Text-to-JSON generation using `openai/gpt-oss-20b` with Pydantic validation
-* AI-generated scene imagery through `Pollination.AI`
+* AI-generated scene imagery through `Pollinations.AI`
 * LangChain-based orchestration
 * `Groq` API integration for low latency LLM inference
+
+### Future Ideas
+* Add AI-generated background music that changes based on the current weather state
+* Build an external FAISS vector database for a RAG system on top of saved weather presets, environment descriptions, narrative examples, and scene-generation references
+* Improve background image generation with stronger prompt formatting and fallback images when the image API is rate-limited
+* Add support for multiple narrative styles, such as realistic, fantasy, horror, cinematic, or cartoon
+* Add save/load options to allow for user-created weather environment presets
 
 ## Tech Stack
 
@@ -38,7 +47,7 @@ This code may be used and/or modified in any non-commerical project.
 * **Pydantic**
 * **llama-3.3-70b-versatile**
 * **openai/gpt-oss-20b**
-* **Pollination.AI**
+* **Pollinations.AI**
 
 ## Installation
 
@@ -130,7 +139,6 @@ or
 ```bash
 python3 weather.py
 ```
-
 
 ## Using the Simulator
 
