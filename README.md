@@ -31,7 +31,7 @@ This code may be used and/or modified in any non-commerical project.
 
 ## Tech Stack
 
-* **Python 3.11**
+* **Python 3**
 * **pygame**
 * **LangChain**
 * **Groq**
@@ -41,6 +41,22 @@ This code may be used and/or modified in any non-commerical project.
 * **Pollination.AI**
 
 ## Installation
+
+### 0. Prerequisites
+
+Before creating the virtual environment, make sure you have Python 3.9–3.13 installed.
+
+Check your Python version with:
+
+```bash
+python --version
+```
+or:
+```bash
+python3 --version
+```
+
+If Python is not installed, download and install a compatible version from the official Python website before continuing: https://www.python.org/downloads/
 
 ### 1. Clone the GitHub repository
 
@@ -108,7 +124,11 @@ $env:GROQ_API_KEY="your_groq_key_here"
 Start the simulator with:
 
 ```bash
-python3.11 weather.py
+python weather.py
+```
+or
+```bash
+python3 weather.py
 ```
 
 
@@ -145,6 +165,6 @@ Make sure your Groq API key is set correctly before launching the application. I
 
 ## Requirements
 
-* Python 3.11
+* Python 3.9-3.13
 * Groq API key
 * Internet connection for API-based text and image generation
