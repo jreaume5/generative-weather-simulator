@@ -8,6 +8,9 @@ This project lets users describe a weather scene in natural language, then gener
 
 The application uses language models to interpret the prompt, convert it into structured weather parameters, and update the simulation in real time. Users can also manually adjust weather sliders to fine-tune the scene.
 
+### Program Screenshot
+<img width="1312" height="944" alt="Screenshot 2026-06-29 at 1 26 34 AM" src="https://github.com/user-attachments/assets/e9f9aa20-86fb-4e47-80bf-69e178898384" />
+
 ## Credits for Baseline Simulation:
 
 Author: Dani Alc
@@ -167,9 +170,14 @@ The system will interpret the prompt, generate structured weather settings, and 
 
 ## Notes
 
-Image generation may take 10–15 seconds or longer depending on network conditions, API response time, and system performance.
+Image generation may take 10–15 seconds or longer depending on network conditions, system performance, API response time, and whether or not API rate limits are met.
 
-Make sure your Groq API key is set correctly before launching the application. If the key is missing or invalid, the text-generation components will not work properly, which will impact the quality of other generated outputs.
+Also make sure your Groq API key is set correctly before launching the application. If the key is missing or invalid, the text-generation components will not work properly, which will impact the quality of other generated outputs.
+
+
+<img width="1312" height="944" alt="Screenshot 2026-06-29 at 1 28 51 AM" src="https://github.com/user-attachments/assets/7cffeaf0-422e-4a28-b83f-4373253d9c5a" />
+
+<img width="1264" height="346" alt="Screenshot 2026-06-29 at 1 47 34 AM" src="https://github.com/user-attachments/assets/a6ffb741-d205-4919-89e2-68d5c1438ddd" />
 
 ## Requirements
 
