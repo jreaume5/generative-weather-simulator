@@ -47,11 +47,9 @@ This code may be used and/or modified in any non-commerical project.
 Clone the project from GitHub and move into the project directory:
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/generative-weather-sim.git
+git clone https://github.com/jreaume5/generative-weather-sim.git
 cd generative-weather-sim
 ```
-
-Replace `YOUR_USERNAME` with your GitHub username or organization name.
 
 ### 2. Create a virtual environment
 
