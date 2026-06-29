@@ -53,10 +53,10 @@ cd generative-weather-sim
 
 ### 2. Create a virtual environment
 
-Make sure Python 3.11 is installed before creating the virtual environment.
+Make sure any Python 3.9-3.13 is installed before creating the virtual environment.
 
 ```bash
-python3.11 -m venv .venv
+python -m venv .venv
 ```
 
 Activate the virtual environment:
