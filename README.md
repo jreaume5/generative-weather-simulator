@@ -25,9 +25,9 @@ This code may be used and/or modified in any non-commerical project.
 * Interactive weather controls and sliders
 * Text-to-text generation with `llama-3.3-70b-versatile`
 * Text-to-JSON generation using `openai/gpt-oss-20b` with Pydantic validation
-* AI-generated scene imagery through Pollination.AI
+* AI-generated scene imagery through `Pollination.AI`
 * LangChain-based orchestration
-* Groq API integration for low latency LLM inference
+* `Groq` API integration for low latency LLM inference
 
 ## Tech Stack
 
@@ -161,7 +161,7 @@ The system will interpret the prompt, generate structured weather settings, and 
 
 Image generation may take 10–15 seconds or longer depending on network conditions, API response time, and system performance.
 
-Make sure your Groq API key is set correctly before launching the application. If the key is missing or invalid, the text-generation components will not work properly.
+Make sure your Groq API key is set correctly before launching the application. If the key is missing or invalid, the text-generation components will not work properly, which will impact the quality of other generated outputs.
 
 ## Requirements
 
