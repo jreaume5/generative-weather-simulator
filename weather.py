@@ -1410,13 +1410,21 @@ class ChatSystem:
             try:
                 weather_context = json.dumps(
                     payload, indent=2) if payload else ""
+                narrative_received = False
                 for chunk in stream_agent_response(prompt, weather_context):
+                    if chunk:
+                        narrative_received = True
                     self.stream_queue.put(("delta", chunk))
+                if not narrative_received:
+                    self.stream_queue.put((
+                        "system",
+                        "Narrative generation returned no output (possible rate limit). "
+                        "Check the console for details."
+                    ))
             except Exception as e:
-                self.stream_queue.put(
-                    ("system",
-                     f"Error generating narrative: {e}")
-                )
+                self.stream_queue.put((
+                    "system", f"Error generating narrative: {e}"
+                ))
 
             self.stream_queue.put(("done", ""))
 
@@ -1446,10 +1454,23 @@ class ChatSystem:
         weather_context = json.dumps(weather_values, indent=2)
 
         def worker() -> None:
-            for chunk in stream_agent_response(
-                "Describe the current weather conditions.", weather_context, last_narrative
-            ):
-                self.stream_queue.put(("delta", chunk))
+            try:
+                narrative_received = False
+                for chunk in stream_agent_response(
+                    "Describe the current weather conditions.", weather_context, last_narrative
+                ):
+                    if chunk:
+                        narrative_received = True
+                    self.stream_queue.put(("delta", chunk))
+                if not narrative_received:
+                    self.stream_queue.put((
+                        "system",
+                        "Narrative generation returned no output (possible rate limit). "
+                        "Check the console for details."
+                    ))
+            except Exception as e:
+                self.stream_queue.put(
+                    ("system", f"Error generating narrative: {e}"))
             self.stream_queue.put(("done", ""))
 
         self.worker = threading.Thread(target=worker, daemon=True)
@@ -1536,7 +1557,7 @@ class ChatSystem:
         Called once per frame. Triggers a weather evolution when the idle
         interval has elapsed and no stream is in progress.
         """
-        if self.streaming or self._pending_image:
+        if self.streaming:
             return
         if time.time() - self.last_evolution_time < self.evolution_interval:
             return
@@ -1567,8 +1588,8 @@ class ChatSystem:
         )
 
         def worker() -> None:
-            # Step 1: Generate evolved weather values from the current state,
-            # anchored to the established scene narrative so it stays coherent.
+            # Generate evolved weather values from the current state
+            # and narrative so it stays coherent.
             payload = {}
             try:
                 evolved = generate_weather_evolution(
@@ -1588,12 +1609,26 @@ class ChatSystem:
                 self.stream_queue.put(
                     ("system", f"Weather evolution error: {e}"))
 
-            # Step 2: Stream a short narrative continuing the established scene.
-            weather_context = json.dumps(payload, indent=2) if payload else ""
-            for chunk in stream_agent_response(
-                "The weather is gently evolving.", weather_context, last_narrative
-            ):
-                self.stream_queue.put(("delta", chunk))
+            # Stream a short narrative continuing the established scene
+            try:
+                weather_context = json.dumps(
+                    payload, indent=2) if payload else ""
+                narrative_received = False
+                for chunk in stream_agent_response(
+                    "The weather is gently evolving.", weather_context, last_narrative
+                ):
+                    if chunk:
+                        narrative_received = True
+                    self.stream_queue.put(("delta", chunk))
+                if not narrative_received:
+                    self.stream_queue.put((
+                        "system",
+                        "Narrative generation returned no output (possible rate limit). "
+                        "Check the console for details."
+                    ))
+            except Exception as e:
+                self.stream_queue.put(
+                    ("system", f"Error generating narrative: {e}"))
 
             self.stream_queue.put(("done", ""))
 
@@ -1620,12 +1655,15 @@ class ChatSystem:
                 self.messages.append(("System", payload))
             # Agent done performing all actions
             elif kind == "done":
-                print(
-                    f"System generated text output:\n{self.messages[-1][1]}\n"
+                last_agent_text = next(
+                    (text for spk, text in reversed(
+                        self.messages) if spk == "Agent"),
+                    ""
                 )
-                print(
-                    "System", f"applied weather JSON:\n{self._current_struct}"
-                )
+                print(f"\nSystem generated text output:\n{last_agent_text}\n")
+                if self._current_struct:
+                    print(
+                        f"System applied weather JSON:\n{self._current_struct}\n")
 
                 self.streaming = False
                 self.last_evolution_time = time.time()
